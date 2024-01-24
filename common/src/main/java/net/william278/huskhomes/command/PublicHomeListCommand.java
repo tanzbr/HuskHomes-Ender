@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 public class PublicHomeListCommand extends ListCommand {
 
     protected PublicHomeListCommand(@NotNull HuskHomes plugin) {
-        super("phomelist", List.of("phomes", "publichomelist"), "[page]", plugin);
+        super("phomelist", List.of("publicas", "homespublicas"), "[page]", plugin);
     }
 
     @Override

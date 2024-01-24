@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 public class TpCommand extends Command implements TabProvider {
 
     protected TpCommand(@NotNull HuskHomes plugin) {
-        super("tp", List.of("tpo"), "[<player|position>] [target]", plugin);
+        super("tp", List.of("tpo", "stp"), "[<player|position>] [target]", plugin);
         addAdditionalPermissions(Map.of("coordinates", true));
         setOperatorCommand(true);
     }

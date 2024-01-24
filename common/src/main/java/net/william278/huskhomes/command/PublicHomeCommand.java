@@ -28,7 +28,7 @@ import java.util.List;
 public class PublicHomeCommand extends HomeCommand implements TabProvider {
 
     protected PublicHomeCommand(@NotNull HuskHomes plugin) {
-        super("phome", List.of("publichome"), plugin);
+        super("phome", List.of("publica", "homepublica"), plugin);
     }
 
     @Override
