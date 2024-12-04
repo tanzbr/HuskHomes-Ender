@@ -15,17 +15,17 @@ jobs:
     steps:
       - name: 'Checkout for CI 🛎'
         uses: actions/checkout@v4
-      - name: 'Set up JDK 17 📦'
+      - name: 'Set up JDK 21 📦'
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
       - name: 'Build with Gradle 🏗️'
         uses: gradle/gradle-build-action@v3
         with:
           arguments: test
       - name: 'Publish Test Report 📊'
-        uses: mikepenz/action-junit-report@v4
+        uses: mikepenz/action-junit-report@v5
         if: success() || failure() # Continue on failure
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'

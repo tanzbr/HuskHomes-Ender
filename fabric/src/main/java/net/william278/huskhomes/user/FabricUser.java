@@ -20,28 +20,28 @@
 package net.william278.huskhomes.user;
 
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.kyori.adventure.audience.Audience;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.entity.Entity;
 import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.TeleportTarget;
 import net.william278.huskhomes.FabricHuskHomes;
+import net.william278.huskhomes.network.FabricPluginMessage;
 import net.william278.huskhomes.position.Location;
 import net.william278.huskhomes.position.Position;
 import net.william278.huskhomes.position.World;
 import net.william278.huskhomes.teleport.TeleportationException;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 public class FabricUser extends OnlineUser {
 
+    private final String INVULNERABLE_TAG = plugin.getKey("invulnerable").asString();
     private final ServerPlayerEntity player;
 
     private FabricUser(@NotNull ServerPlayerEntity player, @NotNull FabricHuskHomes plugin) {
@@ -50,19 +50,17 @@ public class FabricUser extends OnlineUser {
     }
 
     @NotNull
+    @ApiStatus.Internal
     public static FabricUser adapt(@NotNull ServerPlayerEntity player, @NotNull FabricHuskHomes plugin) {
         return new FabricUser(player, plugin);
     }
 
     @Override
     public Position getPosition() {
-        return Position.at(
-                player.getX(), player.getY(), player.getZ(),
+        return FabricHuskHomes.Adapter.adapt(
+                player.getPos(),
+                player.getServerWorld(),
                 player.getYaw(), player.getPitch(),
-                World.from(
-                        player.getWorld().getRegistryKey().getValue().asString(),
-                        UUID.nameUUIDFromBytes(player.getWorld().getRegistryKey().getValue().asString().getBytes())
-                ),
                 plugin.getServerName()
         );
     }
@@ -123,40 +121,43 @@ public class FabricUser extends OnlineUser {
     }
 
     @Override
+    public CompletableFuture<Void> dismount() {
+        final CompletableFuture<Void> future = new CompletableFuture<>();
+        plugin.runSync(() -> {
+            player.stopRiding();
+            player.getPassengerList().forEach(Entity::stopRiding);
+            future.complete(null);
+        }, this);
+        return future;
+    }
+
+    @Override
     public void teleportLocally(@NotNull Location location, boolean async) throws TeleportationException {
         final MinecraftServer server = player.getServer();
         if (server == null) {
             throw new TeleportationException(TeleportationException.Type.ILLEGAL_TARGET_COORDINATES, plugin);
         }
+        final ServerWorld world = FabricHuskHomes.Adapter.adapt(location.getWorld(), server);
+        if (world == null) {
+            throw new TeleportationException(TeleportationException.Type.WORLD_NOT_FOUND, plugin);
+        }
 
-        player.dismountVehicle();
-        FabricDimensions.teleport(
-                player,
-                server.getWorld(server.getWorldRegistryKeys().stream()
-                        .filter(key -> key.getValue().equals(Identifier.tryParse(location.getWorld().getName())))
-                        .findFirst().orElseThrow(
-                                () -> new TeleportationException(TeleportationException.Type.WORLD_NOT_FOUND, plugin)
-                        )),
-                new TeleportTarget(
-                        new Vec3d(location.getX(), location.getY(), location.getZ()),
-                        Vec3d.ZERO,
-                        location.getYaw(),
-                        location.getPitch()
-                )
-        );
+        // Synchronously teleport
+        plugin.runSync(() -> {
+            player.stopRiding();
+            player.getPassengerList().forEach(Entity::stopRiding);
+            player.teleportTo(FabricHuskHomes.Adapter.adapt(location, server, entity -> handleInvulnerability()));
+        }, this);
     }
 
     @Override
-    public void sendPluginMessage(@NotNull String channel, byte[] message) {
-        final PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeIdentifier(parseIdentifier(channel));
-        buf.writeBytes(message);
-        player.networkHandler.sendPacket(new CustomPayloadS2CPacket(buf));
+    public void sendPluginMessage(byte[] message) {
+        player.networkHandler.sendPacket(new CustomPayloadS2CPacket(new FabricPluginMessage(message)));
     }
 
     @Override
     public boolean isMoving() {
-        return player.isTouchingWater() || player.isFallFlying() || player.isSprinting() || player.isSneaking();
+        return player.isTouchingWater() || player.isGliding() || player.isSprinting() || player.isSneaking();
     }
 
     @Override
@@ -164,13 +165,33 @@ public class FabricUser extends OnlineUser {
         return false;
     }
 
-    @NotNull
-    private static Identifier parseIdentifier(@NotNull String channel) {
-        if (channel.equals("BungeeCord")) {
-            return new Identifier("bungeecord", "main");
+    @Override
+    public boolean hasInvulnerability() {
+        return player.getCommandTags().contains(INVULNERABLE_TAG);
+    }
+
+    @Override
+    public void handleInvulnerability() {
+        final long invulnerableTicks = 20L * plugin.getSettings().getGeneral().getTeleportInvulnerabilityTime();
+        if (invulnerableTicks <= 0) {
+            return;
         }
-        return Optional.ofNullable(Identifier.tryParse(channel))
-                .orElseThrow(() -> new IllegalArgumentException("Invalid channel name: " + channel));
+        player.setInvulnerable(true);
+        player.getCommandTags().add(INVULNERABLE_TAG);
+        plugin.runSyncDelayed(this::removeInvulnerabilityIfPermitted, this, invulnerableTicks);
+    }
+
+    @Override
+    public void removeInvulnerabilityIfPermitted() {
+        if (this.hasInvulnerability()) {
+            player.setInvulnerable(false);
+        }
+        player.removeCommandTag(INVULNERABLE_TAG);
+    }
+
+    @NotNull
+    public ServerPlayerEntity getPlayer() {
+        return player;
     }
 
 }

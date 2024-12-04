@@ -5,6 +5,8 @@
 * ⛔ [[Managing Access]]
 * 🖥️ [[Commands]]
 * 📜 [[Command Conflicts]]
+* ⚙️ [[Troubleshooting]]
+* ❓ [[FAQs]]
 
 ## Documentation
 * 📁 [[Database]]
@@ -19,7 +21,6 @@
 * 🛏️ [[Global Respawning]]
 * 🌎 [[Global Spawn]]
 * ✍️ [[Placeholders]]
-* ⭐ [[GUI Add-on]]
 * 🕸️ [[Legacy Migration]] (*v2 → v3*)
 * 📦 [[API]]
   * 💡 [[API Examples]]

@@ -34,7 +34,11 @@ import java.util.stream.Collectors;
 public class WarpListCommand extends ListCommand {
 
     protected WarpListCommand(@NotNull HuskHomes plugin) {
-        super("warplist", List.of(), "[player] [page]", plugin);
+        super(
+                List.of("warplist"),
+                "[player] [page]",
+                plugin
+        );
     }
 
     @Override
@@ -69,8 +73,11 @@ public class WarpListCommand extends ListCommand {
         final PaginatedList warpList = PaginatedList.of(warps.stream().map(warp ->
                         plugin.getLocales()
                                 .getRawLocale("warp_list_item",
-                                        Locales.escapeText(warp.getName()), warp.getSafeIdentifier(),
-                                        Locales.escapeText(warp.getMeta().getDescription())
+                                        Locales.escapeText(warp.getName()),
+                                        warp.getSafeIdentifier(),
+                                        warp.getMeta().getDescription().isBlank()
+                                                ? plugin.getLocales().getNone()
+                                                : Locales.escapeText(warp.getMeta().getDescription())
                                 )
                                 .orElse(warp.getName())).sorted().collect(Collectors.toList()),
                 plugin.getLocales()
@@ -86,7 +93,7 @@ public class WarpListCommand extends ListCommand {
     private List<Warp> getItems(@NotNull CommandUser executor) {
         List<Warp> warps = plugin.getDatabase().getWarps();
         if (plugin.getSettings().getGeneral().isPermissionRestrictWarps()
-                && !executor.hasPermission(Warp.getWildcardPermission())) {
+            && !executor.hasPermission(Warp.getWildcardPermission())) {
             warps = warps.stream().filter(warp -> executor.hasPermission(warp.getPermission())).toList();
         }
         return warps;

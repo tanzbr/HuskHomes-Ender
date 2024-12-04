@@ -19,24 +19,29 @@
 
 package net.william278.huskhomes.command;
 
+import com.google.common.collect.Lists;
 import net.william278.huskhomes.HuskHomes;
 import net.william278.huskhomes.position.Position;
 import net.william278.huskhomes.teleport.*;
 import net.william278.huskhomes.user.CommandUser;
 import net.william278.huskhomes.user.OnlineUser;
+import net.william278.huskhomes.user.User;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
-public class TpCommand extends Command implements TabProvider {
+public class TpCommand extends Command implements TabCompletable {
 
     protected TpCommand(@NotNull HuskHomes plugin) {
-        super("tp", List.of("tpo", "stp"), "[<player|position>] [target]", plugin);
-        addAdditionalPermissions(Map.of("coordinates", true));
+        super(
+                List.of("tp", "tpo", "stp"),
+                "[<player|position>] [target]",
+                plugin
+        );
+
+        addAdditionalPermissions(Map.of("coordinates", true, "other", true));
         setOperatorCommand(true);
     }
 
@@ -49,7 +54,6 @@ public class TpCommand extends Command implements TabProvider {
                             .ifPresent(executor::sendMessage);
                     return;
                 }
-
                 this.execute(executor, user, Target.username(args[0]), args);
             }
             case 2 -> this.execute(executor, Teleportable.username(args[0]), Target.username(args[1]), args);
@@ -82,29 +86,47 @@ public class TpCommand extends Command implements TabProvider {
     }
 
     // Execute a teleport
-    private void execute(@NotNull CommandUser executor, @NotNull Teleportable teleportable, @NotNull Target target,
+    private void execute(@NotNull CommandUser executor, @NotNull Teleportable teleporter, @NotNull Target target,
                          @NotNull String[] args) {
         // Build and execute the teleport
         final TeleportBuilder builder = Teleport.builder(plugin)
-                .teleporter(teleportable)
+                .teleporter(teleporter)
                 .target(target);
-        if (executor instanceof OnlineUser user) {
-            builder.executor(user);
-        }
-        builder.buildAndComplete(false, args);
 
-        // Display a teleport completion message
-        final String teleporterName = teleportable instanceof OnlineUser user
-                ? user.getUsername() : ((Username) teleportable).name();
+        // Determine teleporter and target names, validate permissions
+        final @Nullable String targetName = target instanceof Username username ? username.name()
+                : target instanceof OnlineUser online ? online.getName() : null;
+        if (executor instanceof OnlineUser online) {
+            if (online.equals(teleporter)) {
+                if (teleporter.getName().equalsIgnoreCase(targetName)) {
+                    plugin.getLocales().getLocale("error_cannot_teleport_self")
+                            .ifPresent(executor::sendMessage);
+                    return;
+                }
+            } else if (!executor.hasPermission(getPermission("other"))) {
+                plugin.getLocales().getLocale("error_no_permission")
+                        .ifPresent(executor::sendMessage);
+                return;
+            }
+            builder.executor(online);
+        }
+
+        // Execute teleport
+        if (!builder.buildAndComplete(false, args)) {
+            return;
+        }
+
+        // Display the teleport completion message
         if (target instanceof Position position) {
-            plugin.getLocales().getLocale("teleporting_other_complete_position", teleporterName,
+            plugin.getLocales().getLocale("teleporting_other_complete_position", teleporter.getName(),
                             Integer.toString((int) position.getX()), Integer.toString((int) position.getY()),
                             Integer.toString((int) position.getZ()))
                     .ifPresent(executor::sendMessage);
-        } else {
-            plugin.getLocales().getLocale("teleporting_other_complete", teleporterName, ((Username) target).name())
-                    .ifPresent(executor::sendMessage);
+            return;
         }
+        plugin.getLocales().getLocale("teleporting_other_complete",
+                        teleporter.getName(), Objects.requireNonNull(targetName))
+                .ifPresent(executor::sendMessage);
     }
 
     @Override
@@ -114,14 +136,13 @@ public class TpCommand extends Command implements TabProvider {
         final boolean serveCoordinateCompletions = user.hasPermission(getPermission("coordinates"));
         switch (args.length) {
             case 0, 1 -> {
-                final ArrayList<String> completions = new ArrayList<>();
-                completions.addAll(serveCoordinateCompletions
+                final ArrayList<String> completions = Lists.newArrayList(serveCoordinateCompletions
                         ? List.of("~", "~ ~", "~ ~ ~",
                         Integer.toString((int) relative.getX()),
                         ((int) relative.getX() + " " + (int) relative.getY()),
                         ((int) relative.getX() + " " + (int) relative.getY() + " " + (int) relative.getZ()))
                         : List.of());
-                completions.addAll(plugin.getPlayerList(false));
+                plugin.getUserList().stream().map(User::getName).forEach(completions::add);
                 return completions.stream()
                         .filter(s -> s.toLowerCase().startsWith(args.length == 1 ? args[0].toLowerCase() : ""))
                         .sorted().collect(Collectors.toList());
@@ -132,15 +153,16 @@ public class TpCommand extends Command implements TabProvider {
                     completions.addAll(List.of("~", Integer.toString((int) relative.getY())));
                     completions.addAll(List.of("~ ~", (int) relative.getY() + " " + (int) relative.getZ()));
                 } else {
-                    completions.addAll(
-                            serveCoordinateCompletions
-                                    ? List.of("~", "~ ~", "~ ~ ~",
-                                    Integer.toString((int) relative.getX()),
-                                    ((int) relative.getX() + " " + (int) relative.getY()),
-                                    ((int) relative.getX() + " " + (int) relative.getY() + " " + (int) relative.getZ()))
-                                    : List.of()
+                    completions.addAll(serveCoordinateCompletions
+                            ? List.of("~", "~ ~", "~ ~ ~",
+                            Integer.toString((int) relative.getX()),
+                            ((int) relative.getX() + " " + (int) relative.getY()),
+                            ((int) relative.getX() + " " + (int) relative.getY() + " " + (int) relative.getZ()))
+                            : List.of()
                     );
-                    completions.addAll(plugin.getPlayerList(false));
+                    if (user.hasPermission(getPermission("other"))) {
+                        plugin.getUserList().stream().map(User::getName).forEach(completions::add);
+                    }
                 }
                 return completions.stream()
                         .filter(s -> s.toLowerCase().startsWith(args[1].toLowerCase()))

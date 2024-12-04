@@ -1,5 +1,5 @@
 # [![HuskHomes banner](https://raw.githubusercontent.com/WiIIiam278/HuskHomes/master/images/banner.png)](https://github.com/WiIIiam278/HuskHomes)
-Welcome to the plugin documentation for HuskHomes v4.x+, the powerful and intuitive set homes, warps, and teleports plugin/mod developed by William278. Please click through to the topic you'd like to read about.
+Welcome to the plugin documentation for HuskHomes v4.x+, the powerful & intuitive homes, warps, and teleportation suite developed by William278. Please click through to the topic you'd like to read about.
 
 ## Guides
 * 📚 [[Setup]]
@@ -8,6 +8,8 @@ Welcome to the plugin documentation for HuskHomes v4.x+, the powerful and intuit
 * ⛔ [[Managing Access]]
 * 🖥️ [[Commands]]
 * 📜 [[Command Conflicts]]
+* ⚙️ [[Troubleshooting]]
+* ❓ [[FAQs]]
 
 ## Documentation
 * 📁 [[Database]]
@@ -22,7 +24,6 @@ Welcome to the plugin documentation for HuskHomes v4.x+, the powerful and intuit
 * 🛏️ [[Global Respawning]]
 * 🌎 [[Global Spawn]]
 * ✍️ [[Placeholders]]
-* ⭐ [[GUI Add-on]]
 * 🕸️ [[Legacy Migration]] (*v2 → v3*)
 * 📦 [[API]]
   * 💡 [[API Examples]]

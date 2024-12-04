@@ -27,12 +27,19 @@ import net.william278.huskhomes.util.TransactionResolver;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class WarpCommand extends SavedPositionCommand<Warp> {
 
     protected WarpCommand(@NotNull HuskHomes plugin) {
-        super("tpwarp", List.of("ewarp"), Warp.class, List.of("player"), plugin);
+        super(
+                List.of("tpwarp", "ewarp"),
+                PositionCommandType.WARP,
+                List.of(),
+                plugin
+        );
+        addAdditionalPermissions(Map.of("player", true));
     }
 
     @Override

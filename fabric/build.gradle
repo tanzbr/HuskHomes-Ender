@@ -5,37 +5,37 @@ plugins {
 apply plugin: 'fabric-loom'
 loom.serverOnlyMinecraftJar()
 
+repositories {
+    maven {
+        url 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
+        mavenContent { snapshotsOnly() }
+    }
+    maven { url 'https://maven.impactdev.net/repository/development/' }
+    maven { url 'https://maven.nucleoid.xyz/' }
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:${fabric_minecraft_version}"
     mappings "net.fabricmc:yarn:${fabric_yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
 
-    // Fabric API modules
-    Set<String> fabricApiModules = [
-            'fabric-api-base',
-            'fabric-lifecycle-events-v1',
-            'fabric-entity-events-v1',
-            'fabric-command-api-v2',
-            'fabric-networking-api-v1',
-            'fabric-dimensions-v1',
-    ]
-    fabricApiModules.forEach {
-        modImplementation(fabricApi.module(it, fabric_api_version))
-    }
     modImplementation include("net.kyori:adventure-platform-fabric:${adventure_platform_fabric_version}")
     modImplementation include("me.lucko:fabric-permissions-api:${fabric_permissions_api_version}")
+    modImplementation include("eu.pb4:placeholder-api:${fabric_placeholder_api_version}")
+    modImplementation include("net.impactdev.impactor.api:economy:${fabric_impactor_api_version}")
+    modCompileOnly "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
 
+    implementation include('org.apache.commons:commons-pool2:2.12.0')
     implementation include("redis.clients:jedis:$jedis_version")
-    implementation include("org.apache.commons:commons-pool2:$commons_pool_version")
     implementation include("com.mysql:mysql-connector-j:$mysql_driver_version")
     implementation include("org.mariadb.jdbc:mariadb-java-client:$mariadb_driver_version")
     implementation include("org.xerial:sqlite-jdbc:$sqlite_driver_version")
     implementation include("com.h2database:h2:$h2_driver_version")
 
-    compileOnly 'org.jetbrains:annotations:24.1.0'
-    compileOnly 'org.projectlombok:lombok:1.18.30'
+    compileOnly 'org.jetbrains:annotations:26.0.1'
+    compileOnly 'org.projectlombok:lombok:1.18.36'
 
-    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.36'
 
     shadow project(path: ":common")
 }

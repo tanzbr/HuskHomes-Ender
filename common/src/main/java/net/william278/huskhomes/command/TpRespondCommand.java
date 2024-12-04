@@ -30,14 +30,14 @@ import java.util.Optional;
  * A command used for responding to tp requests - can either be a /tpaccept or /tpdecline command, controlled by the
  * acceptRequestCommand flag.
  */
-public class TpRespondCommand extends InGameCommand implements UserListTabProvider {
+public class TpRespondCommand extends InGameCommand implements UserListTabCompletable {
 
     private final boolean accept;
 
     protected TpRespondCommand(@NotNull HuskHomes plugin, boolean accept) {
         super(
-                accept ? "tpaccept" : "tpdecline",
-                accept ? List.of("tpaceitar") : List.of("tpnegar", "tpdeny"),
+                accept ? List.of("tpaccept", "tpaceitar")
+                        : List.of("tpdecline", "tpnegar", "tpdeny"),
                 "[player]",
                 plugin
         );

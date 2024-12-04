@@ -1,7 +1,7 @@
 This page contains the configuration structure for HuskHomes.
 
 ## Configuration structure
-📁 `plugins/HuskHomes/` (Spigot) OR `config/huskhomes/` (Fabric, Sponge)
+📁 `plugins/HuskHomes/` (Spigot) OR `config/huskhomes/` (Fabric)
   - 📄 `config.yml`: General plugin configuration
   - 📄 `server.yml`: (Cross-server setups only) Server ID configuration
   - 📄 `spawn.yml`: Local saved server spawn position. Use /setspawn to generate this file
@@ -26,9 +26,9 @@ language: en-gb
 check_for_updates: true
 # Database settings
 database:
-  # Type of database to use (SQLITE, H2, MYSQL, or MARIADB)
+  # Type of database to use (SQLITE, H2, MYSQL, MARIADB, or POSTGRESQL)
   type: SQLITE
-  # Specify credentials here if you are using MYSQL or MARIADB
+  # Specify credentials here if you are using MYSQL, MARIADB, or POSTGRESQL
   credentials:
     host: localhost
     port: 3306
@@ -36,7 +36,7 @@ database:
     username: root
     password: pa55w0rd
     parameters: ?autoReconnect=true&useSSL=false&useUnicode=true&characterEncoding=UTF-8
-  # MYSQL / MARIADB database Hikari connection pool properties
+  # MYSQL / MARIADB / POSTGRESQL database Hikari connection pool properties
   # Don't modify this unless you know what you're doing!
   pool_options:
     size: 12
@@ -65,16 +65,20 @@ general:
   permission_restrict_warps: false
   # How long a player has to stand still and not take damage for when teleporting (in seconds) 
   teleport_warmup_time: 5
+  # Whether the teleport warmup timer should be cancelled if the player takes damage
+  teleport_warmup_cancel_on_damage: true
+  # Whether the teleport warmup timer should be cancelled if the player moves
+  teleport_warmup_cancel_on_move: true
   # Where the teleport warmup timer should display (CHAT, ACTION_BAR, TITLE, SUBTITLE or NONE)
   teleport_warmup_display: ACTION_BAR
+  # How long the player should be invulnerable for after teleporting (in seconds)
+  teleport_invulnerability_time: 0
   # How long before received teleport requests expire (in seconds)
   teleport_request_expiry_time: 60
   # Whether /tpahere should use the location of the sender when sent. Docs: https://william278.net/docs/huskhomes/strict-tpahere/
   strict_tpa_here_requests: true
   # How many items should be displayed per-page in chat menu lists
   list_items_per_page: 12
-  # Whether to provide modern, rich TAB suggestions for commands (if available)
-  brigadier_tab_completion: true
   # Whether the user should always be put back at the /spawn point when they die (ignores beds/respawn anchors)
   always_respawn_at_spawn: false
   # Whether teleportation should be carried out async (ensuring chunks load before teleporting)
