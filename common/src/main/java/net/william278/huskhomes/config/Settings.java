@@ -131,7 +131,7 @@ public final class Settings {
                  + "if the user inherits multiple nodes.")
         private boolean stackPermissionLimits = false;
 
-        @Comment("Whether users require a permission (huskhomes.command.warp.<warp_name>) to use warps")
+        @Comment("Whether users require a permission (huskhomes.warp.<warp_name>) to use warps")
         private boolean permissionRestrictWarps = false;
 
         @Comment("How long a player has to stand still and not take damage for when teleporting (in seconds) ")
@@ -254,7 +254,7 @@ public final class Settings {
                 "Do not change unless you know what you're doing"})
         private String clusterId = "main";
 
-        @Comment("Type of network message broker to ues for data synchronization (PLUGIN_MESSAGE or REDIS)")
+        @Comment("Type of network message broker to ues for cross-server networking (PLUGIN_MESSAGE or REDIS)")
         private Broker.Type brokerType = Broker.Type.PLUGIN_MESSAGE;
 
         @Comment("Settings for if you're using REDIS as your message broker")
@@ -330,6 +330,12 @@ public final class Settings {
         @Comment("Standard deviation of the normal distribution for distributing players randomly")
         private float distributionStandardDeviation = 2.0f;
 
+        @Comment({"Set the minimum random teleportation height for each world", "List of world_name:height pairs"})
+        private List<String> minHeight = Lists.newArrayList();
+
+        @Comment({"Set the maximum random teleportation height for each world", "List of world_name:height pairs"})
+        private List<String> maxHeight = Lists.newArrayList();
+
         @Comment("List of worlds in which /rtp is disabled. Please note that /rtp does not work well in the nether.")
         private List<String> restrictedWorlds = List.of("world_nether", "world_the_end");
 
@@ -347,7 +353,7 @@ public final class Settings {
         @Comment({"List of server in which /rtp is allowed. (Only relevant when using cross server mode WITH REDIS)",
                 "If a server is not defined here the RTP logic has no way of knowing its existence."})
         private Map<String, List<String>> randomTargetServers = new HashMap<>(
-                Map.of("survival_server", List.of("world", "world_nether", "world_the_end"))
+                Map.of("server", List.of("world", "world_nether", "world_the_end"))
         );
     }
 

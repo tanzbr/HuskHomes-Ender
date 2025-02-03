@@ -150,7 +150,8 @@ public class BukkitUser extends OnlineUser {
 
     @Override
     public boolean hasInvulnerability() {
-        return bukkitPlayer.getPersistentDataContainer().has(INVULNERABLE_KEY, PersistentDataType.INTEGER);
+        return markedAsInvulnerable || bukkitPlayer.getPersistentDataContainer()
+                .has(INVULNERABLE_KEY, PersistentDataType.INTEGER);
     }
 
     @Override
@@ -159,6 +160,7 @@ public class BukkitUser extends OnlineUser {
         if (invulnerableTicks <= 0) {
             return;
         }
+        markedAsInvulnerable = true;
         bukkitPlayer.getPersistentDataContainer().set(INVULNERABLE_KEY, PersistentDataType.INTEGER, 1);
         bukkitPlayer.setInvulnerable(true);
         plugin.runSyncDelayed(this::removeInvulnerabilityIfPermitted, this, invulnerableTicks);
@@ -170,6 +172,16 @@ public class BukkitUser extends OnlineUser {
             bukkitPlayer.setInvulnerable(false);
         }
         bukkitPlayer.getPersistentDataContainer().remove(INVULNERABLE_KEY);
+        markedAsInvulnerable = false;
     }
 
+    /**
+     * Check if the teleporter can teleport.
+     *
+     * @return true if the teleport may complete.
+     */
+    @Override
+    public boolean isValid() {
+        return getHealth() > 0;
+    }
 }

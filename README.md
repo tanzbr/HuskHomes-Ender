@@ -43,8 +43,8 @@ HuskHomes can be used on your Spigot or Fabric server, and with a MySQL Database
 
 **⭐ Extensible API & open-source** &mdash; Still not enough? Extend the plugin with the HuskHomes API. Or, submit a pull request—we're open-source!
 
-## Building
-HuskHomes requires Java 17 to build. To build for all platforms, simply run the following in the root of the repository:
+## Development
+To build HuskHomes, simply run the following in the root of the repository (building requires Java 21):
 
 ```bash
 ./gradlew clean build
@@ -69,4 +69,4 @@ Translations of the plugin locales are welcome to help make the plugin more acce
 - [bStats](https://bstats.org/plugin/bukkit/HuskHomes/8430) &mdash; View plugin metrics
 
 ---
-&copy; [William278](https://william278.net/), 2023. Licensed under the Apache-2.0 License.
+&copy; [William278](https://william278.net/), 2025. Licensed under the Apache-2.0 License.
