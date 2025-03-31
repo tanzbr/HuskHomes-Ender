@@ -105,6 +105,9 @@ general:
     return_by_death: true
     # Whether /back should work with other plugins that use the PlayerTeleportEvent (can conflict)
     save_on_teleport_event: false
+    # List of world names where the /back command cannot RETURN the player to.
+    # A user's last position won't be updated if they die or teleport from these worlds, but they still will be able to use the command while IN the world
+    restricted_worlds: []
   # Settings for sound effects
   sound_effects:
     # Whether to play sound effects
@@ -179,6 +182,14 @@ economy:
     RANDOM_TELEPORT: 25.0
   # Specify how many homes players can set for free, before they need to pay for more slots
   free_home_slots: 5
+# Plan hook settings. Docs: https://william278.net/docs/huskhomes/plan-hook
+plan:
+  # Hook into Player Analytics to provide HuskHomes statistics in your web dashboard
+  enabled: true
+# LuckPerms hook settings. Docs: https://william278.net/docs/huskhomes/luckperms-hook
+luckperms:
+  # Hook into LuckPerms for more accurate numerical permission calculations
+  enabled: true
 # Web map hook settings. Docs: https://william278.net/docs/huskhomes/map-hooks
 map_hook:
   # Display public homes/warps on your Dynmap, BlueMap or Pl3xMap

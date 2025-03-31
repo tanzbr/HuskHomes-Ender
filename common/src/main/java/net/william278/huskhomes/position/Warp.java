@@ -72,18 +72,16 @@ public class Warp extends SavedPosition {
         return USE_PERMISSION_FORMAT.formatted(warpName);
     }
 
-    @NotNull
-    public static String getWildcardPermission() {
-        return USE_PERMISSION_WILDCARD;
-    }
-
-    @NotNull
-    public String getPermission() {
-        return Warp.getPermission(getName());
-    }
-
     public boolean hasPermission(@NotNull CommandUser user) {
-        return user.hasPermission(Warp.getWildcardPermission()) || user.hasPermission(getPermission());
+        return Warp.hasPermission(user, getName());
+    }
+
+    public static boolean hasPermission(@NotNull CommandUser user, @NotNull String warpName) {
+        final String warpPermission = getPermission(warpName);
+        if (user.isPermissionSet(warpPermission)) {
+            return user.hasPermission(warpPermission);
+        }
+        return user.hasPermission(USE_PERMISSION_WILDCARD);
     }
 
 }
