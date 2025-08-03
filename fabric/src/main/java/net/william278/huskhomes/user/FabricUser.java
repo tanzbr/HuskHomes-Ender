@@ -25,6 +25,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.util.TriState;
 import net.kyori.adventure.audience.Audience;
 import net.minecraft.entity.Entity;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -60,25 +61,42 @@ public class FabricUser extends OnlineUser {
     public Position getPosition() {
         return FabricHuskHomes.Adapter.adapt(
                 player.getPos(),
-                player.getServerWorld(),
+                getServerWorld(player),
                 player.getYaw(), player.getPitch(),
                 plugin.getServerName()
         );
     }
 
+    @NotNull
+    private ServerWorld getServerWorld(ServerPlayerEntity player) {
+        //#if MC <=12104
+        //$$ return player.getServerWorld();
+        //#else
+        return player.getWorld();
+        //#endif
+    }
+
     @Override
     public Optional<Position> getBedSpawnPosition() {
-        final BlockPos spawn = player.getSpawnPointPosition();
-        if (spawn == null) {
+        //#if MC<=12104
+        //$$ final BlockPos spawn = player.getSpawnPointPosition();
+        //$$ final float angle = player.getSpawnAngle();
+        //$$ final RegistryKey<net.minecraft.world.World> world = player.getSpawnPointDimension();
+        //#else
+        final BlockPos spawn = player.getRespawn() == null ? null : player.getRespawn().pos();
+        final float angle = player.getRespawn() == null ? 0 : player.getRespawn().angle();
+        final RegistryKey<net.minecraft.world.World> world = player.getRespawn() == null ? null : player.getRespawn().dimension();
+        //#endif
+        if (spawn == null || world == null) {
             return Optional.empty();
         }
 
         return Optional.of(Position.at(
                 spawn.getX(), spawn.getY(), spawn.getZ(),
-                player.getSpawnAngle(), 0,
+                angle, 0,
                 World.from(
-                        player.getSpawnPointDimension().getValue().asString(),
-                        UUID.nameUUIDFromBytes(player.getSpawnPointDimension().getValue().asString().getBytes())
+                        world.getValue().asString(),
+                        UUID.nameUUIDFromBytes(world.getValue().asString().getBytes())
                 ),
                 plugin.getServerName()
         ));
@@ -152,7 +170,7 @@ public class FabricUser extends OnlineUser {
         plugin.runSync(() -> {
             player.stopRiding();
             player.getPassengerList().forEach(Entity::stopRiding);
-            //#if MC==12104
+            //#if MC>=12104
             player.teleport(
                     world, location.getX(), location.getY(), location.getZ(),
                     Set.of(),
